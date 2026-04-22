@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fish Steps - Gamified Aquarium Walk Tracker</title>
+    
+    <!-- Using Google Fonts: Inter for modern, clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+      /* --- CSS Variables & Theming --- */
+      :root {
+          --ocean-deep: #0B1021;
+          --ocean-mid: #1E3A8A;
+          --ocean-light: #3B82F6;
+          --cyan-glow: #06B6D4;
+          --glass-bg: rgba(255, 255, 255, 0.08);
+          --glass-border: rgba(255, 255, 255, 0.15);
+          --text-primary: #F8FAFC;
+          --text-secondary: #94A3B8;
+      }
+
+      /* --- Base Reset --- */
+      * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Inter', -apple-system, sans-serif;
+          -webkit-font-smoothing: antialiased;
+      }
+
+      body {
+          /* Deep underwater gradient base */
+          background: linear-gradient(135deg, var(--ocean-deep) 0%, var(--ocean-mid) 100%);
+          color: var(--text-primary);
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          overflow-x: hidden;
+          position: relative;
+      }
+
+      /* --- Environment Effects --- */
+      /* Light Ray Effect overlaying the background */
+      .light-rays {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+          clip-path: polygon(20% 0, 80% 0, 100% 100%, 0% 100%);
+          opacity: 0.4;
+          pointer-events: none;
+          z-index: 0;
+      }
+
+      /* Background Bubbles */
+      .bubbles {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          z-index: 0;
+          overflow: hidden;
+          top: 0;
+          left: 0;
+          pointer-events: none;
+      }
+      .bubble {
+          position: absolute;
+          bottom: -100px;
+          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0.05) 70%);
+          border-radius: 50%;
+          box-shadow: inset -2px -2px 10px rgba(255,255,255,0.1), 0 0 10px rgba(6, 182, 212, 0.2);
+          animation: float 8s infinite ease-in;
+      }
+      @keyframes float {
+          0% { transform: translateY(0) scale(1); opacity: 0; }
+          10% { opacity: 1; }
+          100% { transform: translateY(-100vh) scale(1.5); opacity: 0; }
+      }
+        
+      /* --- Main Content Layout --- */
+      .container {
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          padding: 2rem;
+          max-width: 600px;
+          width: 100%;
+      }
+
+      /* Premium Glassmorphism Card */
+      .glass-card {
+          background: var(--glass-bg);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid var(--glass-border);
+          border-radius: 40px;
+          padding: 3.5rem 2.5rem;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.2);
+          animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          transform: translateY(30px);
+          opacity: 0;
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      
+      .glass-card:hover {
+          transform: translateY(-10px);
+      }
+
+      @keyframes slideUp {
+          to { transform: translateY(0); opacity: 1; }
+      }
+
+      /* Logo Styling */
+      .app-icon {
+          width: 150px;
+          height: 150px;
+          border-radius: 35px;
+          margin-bottom: 2rem;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(6, 182, 212, 0.3);
+          border: 1px solid var(--glass-border);
+          object-fit: cover;
+          transition: transform 0.3s ease;
+      }
+      
+      .app-icon:hover {
+          transform: scale(1.05) rotate(-2deg);
+      }
+
+      /* Typography */
+      h1 {
+          font-size: 3rem;
+          font-weight: 800;
+          letter-spacing: -1px;
+          margin-bottom: 1rem;
+          background: linear-gradient(to bottom right, #ffffff, #8be9fb);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+
+      p {
+          font-size: 1.15rem;
+          line-height: 1.6;
+          color: var(--text-secondary);
+          margin-bottom: 3rem;
+          padding: 0 10px;
+      }
+
+      /* CTA Button */
+      .btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          background: linear-gradient(135deg, var(--ocean-light), var(--cyan-glow));
+          color: white;
+          text-decoration: none;
+          font-weight: 600;
+          padding: 1.1rem 2.8rem;
+          border-radius: 99px;
+          font-size: 1.1rem;
+          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.5), inset 0 2px 2px rgba(255,255,255,0.3);
+          border: 1px solid rgba(255,255,255,0.1);
+          cursor: pointer;
+          position: relative;
+          overflow: hidden;
+      }
+
+      /* Button hover & shine effect */
+      .btn::after {
+          content: '';
+          position: absolute;
+          top: 0; left: -100%;
+          width: 50%; height: 100%;
+          background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+          transform: skewX(-20deg);
+          animation: shine 4s infinite;
+      }
+
+      @keyframes shine {
+          0% { left: -100%; }
+          20% { left: 200%; }
+          100% { left: 200%; }
+      }
+
+      .btn:hover {
+          transform: scale(1.05) translateY(-2px);
+          box-shadow: 0 20px 35px -5px rgba(6, 182, 212, 0.6), inset 0 2px 2px rgba(255,255,255,0.3);
+      }
+      
+      .btn svg {
+          width: 22px;
+          height: 22px;
+          fill: currentColor;
+      }
+      
+      /* Footer links */
+      .footer {
+          margin-top: 3rem;
+          font-size: 0.9rem;
+          color: var(--text-secondary);
+          z-index: 10;
+          opacity: 0;
+          animation: fadeIn 1s ease 0.5s forwards;
+      }
+      
+      @keyframes fadeIn {
+          to { opacity: 1; }
+      }
+      
+      .footer a {
+          color: var(--cyan-glow);
+          text-decoration: none;
+          margin: 0 12px;
+          transition: color 0.2s, text-shadow 0.2s;
+          opacity: 0.8;
+      }
+      .footer a:hover {
+          color: white;
+          opacity: 1;
+          text-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
+      }
+      
+      /* Mobile Responsiveness */
+      @media (max-width: 480px) {
+          h1 { font-size: 2.5rem; }
+          .glass-card { padding: 2.5rem 1.5rem; }
+          .app-icon { width: 120px; height: 120px; }
+          .footer span { display: none; } /* Hide the divider pipes on small screens */
+          .footer a { display: block; margin: 10px 0; }
+      }
+    </style>
+</head>
+<body>
+    <div class="light-rays"></div>
+    <div class="bubbles" id="bubbles-container"></div>
+
+    <div class="container">
+        <div class="glass-card">
+            <!-- App Logo from provided URL -->
+            <img src="https://storage.googleapis.com/fish-steps/AppIcon-iOS-Default-1024x1024%401x.png" alt="Fish Steps Logo" class="app-icon">
+            
+            <h1>Fish Steps</h1>
+            <p>Walk to build your perfect aquarium. Gamify your fitness with dynamic sea life, relaxing visuals, and daily rewards.</p>
+            
+            <!-- CTA Button with Apple Logo Icon -->
+            <a href="#" class="btn">
+                <svg viewBox="0 0 384 512" xmlns="http://www.w3.org/2000/svg">
+                    <!-- FontAwesome Apple Icon -->
+                    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.3 48.6-.8 90.4-86.8 102.8-125.2-34.1-15-51.5-43.2-51.5-85.4zm-146-241c25-30.8 45.4-45.4 46.2-74.7-27.1 1.7-58.4 16.4-78.4 40.5-17.1 20-31.5 50.8-28.7 82.2 29.8 1.4 57.3-17.3 60.9-48z"/>
+                </svg>
+                Download on the App Store
+            </a>
+        </div>
+        
+        <div class="footer">
+            <a href="#">Privacy Policy</a> <span aria-hidden="true">|</span> 
+            <a href="#">Support</a> <span aria-hidden="true">|</span> 
+            <a href="#">Terms of Service</a>
+        </div>
+    </div>
+
+    <script>
+        // Dynamically insert randomized animated bubbles
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('bubbles-container');
+            const bubbleCount = 20; // Number of bubbles
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                // Randomize bubble visual properties
+                const size = Math.random() * 40 + 8; // Between 8px and 48px
+                const left = Math.random() * 100; // Between 0% and 100% viewport width
+                const delay = Math.random() * 10; // Between 0s and 10s delay
+                const duration = Math.random() * 5 + 7; // Float duration 7s to 12s
+
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${left}%`;
+                bubble.style.animationDelay = `${delay}s`;
+                bubble.style.animationDuration = `${duration}s`;
+
+                container.appendChild(bubble);
+            }
+        });
+    </script>
+</body>
+</html>
